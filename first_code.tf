@@ -3,7 +3,7 @@ provider "aws" {
   region = "us-west-2"
 }
 
-resource "aws_s3_bucket" "first_terraform_bucket" {
-  bucket = "terraform_first_bucket"
+resource "aws_s3_bucket" "first-terraform-bucket" {
+  bucket = "terraform-first-bucket"
   acl = "private"
 }
