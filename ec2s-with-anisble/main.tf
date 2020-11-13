@@ -1,12 +1,12 @@
 provider "aws" {
   profile = "default"
-  region  = "us-west-2"
+  region  = "us-east-2"
 }
 
 resource "aws_instance" "ansible-master" {
-  ami               = "ami-0e781a2535d5b2d02"
+  ami               = "ami-abedc0ce"
   instance_type     = "t2.micro"
-  key_name          = "terraform-ec2"
+  key_name          = "ansible-training.pem"
 
 provisioner "remote-exec" {
   inline  = [
@@ -17,7 +17,7 @@ provisioner "remote-exec" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("terraform-ec2.pem")
+    private_key = file("ansible-training.pem")
     host        = "${aws_instance.ansible-master.public_ip}"
     timeout     = "30s"
  }
@@ -29,10 +29,10 @@ tags = {
 }
 
 resource "aws_instance" "ansible-workers" {
-  ami               = "ami-0e781a2535d5b2d02"
+  ami               = "ami-abedc0ce"
   instance_type     = "t2.micro"
-  key_name          = "terraform-ec2"
-  count             = 2
+  key_name          = "ansible-training"
+  count             = 3
  }
 
 
@@ -40,7 +40,7 @@ module "inventory_production" {
   source  = "gendall/ansible-inventory/local"
   servers = {
     manager = ["${aws_instance.ansible-master.public_ip}"]
-    worker = ["${aws_instance.ansible-workers.0.public_ip} ansible_ssh_private_key_file=terraform-ec2.pem", "${aws_instance.ansible-workers.1.public_ip} ansible_ssh_private_key_file=terraform-ec2.pem"]
+    worker = ["${aws_instance.ansible-workers.0.public_ip} ansible_ssh_private_key_file=ansible-training.pem", "${aws_instance.ansible-workers.1.public_ip} ansible_ssh_private_key_file=ansible-training.pem", "${aws_instance.ansible-workers.2.public_ip} ansible_ssh_private_key_file=ansible-training.pem"]
   }
   secrets = {
     tls_key  = "-----BEGIN RSA PRIVATE KEY----- MIIEow..."
@@ -54,7 +54,7 @@ resource "null_resource" "copy-step" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("terraform-ec2.pem")
+    private_key = file("ansible-training.pem")
     host        = "${aws_instance.ansible-master.public_ip}"
     timeout     = "30s"
    }
